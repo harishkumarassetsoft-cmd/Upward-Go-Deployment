@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Activity, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080';
+import { API_URL } from '../config';
+const API_URL_VAR = API_URL;
 
 export default function YardiSync() {
     const [isSyncing, setIsSyncing] = useState(false);

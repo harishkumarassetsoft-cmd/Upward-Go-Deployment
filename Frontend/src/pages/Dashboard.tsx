@@ -4,7 +4,7 @@ import { TrendingUp, Users, Building, AlertCircle, X } from 'lucide-react';
 import axios from 'axios';
 
 // Add simple fast API URL configuration
-const API_URL = 'http://localhost:8080';
+import { API_URL } from '../config';
 
 export default function Dashboard() {
     const [sales, setSales] = useState([]);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../config';
 import { CreditCard, Calculator, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -28,7 +29,7 @@ export default function Payments() {
         setLoading(true);
         try {
             // First call original schedule logic
-            const res = await fetch('http://localhost:8080/api/payments/generate-schedule', {
+            const res = await fetch(`${API_URL}/api/payments/generate-schedule`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -4,7 +4,8 @@ import { Plus, Upload, Filter, Search, X, Building, ChevronDown } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
-const API = 'http://localhost:8080';
+import { API_URL } from '../config';
+const API = API_URL;
 const STATUS_OPTIONS = ['All', 'Reservation', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Draft'];
 
 export default function SalesList() {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../config';
 import { BadgeDollarSign, Calculator, Layers, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -13,7 +14,7 @@ export default function Brokers() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8080/api/brokerage/calculate', {
+            const res = await fetch(`${API_URL}/api/brokerage/calculate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
