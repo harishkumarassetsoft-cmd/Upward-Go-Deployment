@@ -73,9 +73,6 @@ export default function Buyers() {
 
     // Guard: block background poll from overwriting state within 5s of any save
     const lastSaveRef = useRef<number>(0);
-    // Mirror refs for intervals
-    const salesRef = useRef<any[]>([]);
-    useEffect(() => { salesRef.current = sales; }, [sales]);
     const checkDataRef = useRef<Record<string, CheckAttempt[]>>({});
     useEffect(() => { checkDataRef.current = checkData; }, [checkData]);
 
