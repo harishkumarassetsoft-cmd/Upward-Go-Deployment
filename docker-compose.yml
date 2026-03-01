@@ -6,7 +6,7 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - ./Backend/Data:/app/Data
 

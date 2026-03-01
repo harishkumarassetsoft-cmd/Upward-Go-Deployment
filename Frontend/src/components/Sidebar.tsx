@@ -63,10 +63,10 @@ export default function Sidebar() {
             <div className="p-4 border-t border-slate-700/50">
                 <div className="flex items-center gap-3 px-3 py-2">
                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 font-bold border border-slate-700">
-                        SJ
+                        THB
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-white">Sarah Johnson</p>
+                        <p className="text-sm font-medium text-white">The Builders</p>
                         <p className="text-xs text-slate-400">Super Admin</p>
                     </div>
                 </div>

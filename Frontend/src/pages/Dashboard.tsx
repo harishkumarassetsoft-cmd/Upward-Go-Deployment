@@ -4,7 +4,7 @@ import { TrendingUp, Users, Building, AlertCircle, X } from 'lucide-react';
 import axios from 'axios';
 
 // Add simple fast API URL configuration
-const API_URL = 'http://localhost:8000';
+const API_URL = 'http://localhost:8080';
 
 export default function Dashboard() {
     const [sales, setSales] = useState([]);
@@ -25,9 +25,15 @@ export default function Dashboard() {
         return '$' + val;
     };
 
-    const totalVolume = sales.reduce((sum, sale: any) => sum + (Number(sale.SalePrice) || 0), 0);
-    const activeBuyersCount = new Set(sales.map((s: any) => s.BuyerName)).size;
-    const missingCompliance = sales.filter((s: any) => s.FINTRAC_Verified === 0.0 || s.FINTRAC_Verified === "No" || s.FINTRAC_Verified === 0).length;
+    const totalVolume = sales.reduce((sum, sale: any) => {
+        const p = sale.price ?? sale.SalePrice ?? 0;
+        return sum + Number(String(p).replace(/[^0-9.-]+/g, ''));
+    }, 0);
+    const activeBuyersCount = new Set(sales.map((s: any) => s.buyer || s.BuyerName)).size;
+    const missingCompliance = sales.filter((s: any) => {
+        const fintrac = s.fintrac_verified ?? s.data?.fintracStatus ?? s.FINTRAC_Verified;
+        return fintrac === 0.0 || fintrac === "No" || fintrac === 0 || fintrac === "Not Started" || fintrac === false;
+    }).length;
 
     const stats = [
         { title: 'Total Sales Volume', value: formatCurrency(totalVolume), icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/10', onClick: () => setSelectedStat('Total Sales Volume') },
@@ -94,24 +100,24 @@ export default function Dashboard() {
                             <tbody>
                                 {[...sales].reverse().slice(0, 10).map((sale: any, i) => (
                                     <motion.tr
-                                        key={sale.SaleID}
+                                        key={sale.id || sale.SaleID}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
                                         className="border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors"
                                     >
-                                        <td className="px-4 py-3 font-medium text-white text-sm">{(sale.SaleID || "").substring(0, 8)}...</td>
-                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.PropertyID}</td>
-                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.UnitID}</td>
-                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.BuyerName}</td>
-                                        <td className="px-4 py-3 font-medium text-sm text-slate-300">${Number(sale.SalePrice || 0).toLocaleString()}</td>
-                                        <td className="px-4 py-3 text-slate-400 text-sm">{(sale.Date ? String(sale.Date).substring(0, 10) : "")}</td>
+                                        <td className="px-4 py-3 font-medium text-white text-sm">{(sale.id || sale.SaleID || "").substring(0, 8)}...</td>
+                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.property || sale.PropertyID}</td>
+                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.unit || sale.UnitID}</td>
+                                        <td className="px-4 py-3 text-slate-300 text-sm">{sale.buyer || sale.BuyerName}</td>
+                                        <td className="px-4 py-3 font-medium text-sm text-slate-300">${Number(String(sale.price || sale.SalePrice || 0).replace(/[^0-9.-]+/g, '')).toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-slate-400 text-sm">{((sale.date || sale.Date) ? String(sale.date || sale.Date).substring(0, 10) : "")}</td>
                                         <td className="px-4 py-3">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                                                ${['Confirmed', 'Completed', 'Sold'].includes(sale.Status) ? 'bg-emerald-500/10 text-emerald-400' :
-                                                    sale.Status === 'Cancelled' ? 'bg-red-500/10 text-red-400' :
+                                                ${['Confirmed', 'Completed', 'Sold'].includes(sale.status || sale.Status) ? 'bg-emerald-500/10 text-emerald-400' :
+                                                    (sale.status || sale.Status) === 'Cancelled' ? 'bg-red-500/10 text-red-400' :
                                                         'bg-amber-500/10 text-amber-400'}`}>
-                                                {sale.Status || 'Pending'}
+                                                {sale.status || sale.Status || 'Pending'}
                                             </span>
                                         </td>
                                     </motion.tr>
@@ -159,11 +165,14 @@ export default function Dashboard() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {sales.filter((s: any) => s.FINTRAC_Verified === 0.0 || s.FINTRAC_Verified === "No" || s.FINTRAC_Verified === 0).map((sale: any) => (
-                                            <tr key={sale.SaleID} className="border-b border-slate-700/50 hover:bg-slate-800/50">
-                                                <td className="px-4 py-3 font-medium text-white text-sm">{(sale.SaleID || "").substring(0, 8)}...</td>
-                                                <td className="px-4 py-3 text-slate-300 text-sm">{sale.BuyerName}</td>
-                                                <td className="px-4 py-3 text-slate-400 text-sm">{String(sale.Date).substring(0, 10)}</td>
+                                        {sales.filter((s: any) => {
+                                            const fintrac = s.fintrac_verified ?? s.data?.fintracStatus ?? s.FINTRAC_Verified;
+                                            return fintrac === 0.0 || fintrac === "No" || fintrac === 0 || fintrac === "Not Started" || fintrac === false;
+                                        }).map((sale: any) => (
+                                            <tr key={sale.id || sale.SaleID} className="border-b border-slate-700/50 hover:bg-slate-800/50">
+                                                <td className="px-4 py-3 font-medium text-white text-sm">{(sale.id || sale.SaleID || "").substring(0, 8)}...</td>
+                                                <td className="px-4 py-3 text-slate-300 text-sm">{sale.buyer || sale.BuyerName}</td>
+                                                <td className="px-4 py-3 text-slate-400 text-sm">{String(sale.date || sale.Date).substring(0, 10)}</td>
                                                 <td className="px-4 py-3 text-sm">
                                                     <button className="px-3 py-1 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded text-xs hover:bg-rose-500/30 transition-colors">Resolve KYC</button>
                                                 </td>
@@ -176,7 +185,7 @@ export default function Dashboard() {
 
                         {selectedStat === 'Active Buyers' && (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {Array.from(new Set(sales.map((s: any) => s.BuyerName))).map((buyer: any, idx) => (
+                                {Array.from(new Set(sales.map((s: any) => s.buyer || s.BuyerName))).map((buyer: any, idx) => (
                                     <div key={idx} className="p-3 bg-slate-800/50 border border-slate-700/50 rounded-lg flex items-center gap-3 hover:border-blue-500/30 transition-colors">
                                         <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">
                                             {buyer ? String(buyer).charAt(0).toUpperCase() : '?'}

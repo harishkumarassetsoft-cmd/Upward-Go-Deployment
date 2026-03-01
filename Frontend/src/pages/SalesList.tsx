@@ -4,7 +4,7 @@ import { Plus, Upload, Filter, Search, X, Building, ChevronDown } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8080';
 const STATUS_OPTIONS = ['All', 'Reservation', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Draft'];
 
 export default function SalesList() {
@@ -38,6 +38,22 @@ export default function SalesList() {
         country: 'CA',
     });
 
+    const loadAvailableUnits = async (propId: string) => {
+        if (!propId) { setAvailableUnits([]); return; }
+        try {
+            const res = await fetch(`${API}/api/properties/${propId}/units`);
+            const all = await res.json();
+            // Include both Available AND Under Construction units (UC = pre-con sale)
+            // AND ensure the unit is not already attached to an active sale
+            const activeUnitIds = new Set(sales.filter((s: any) => s.status !== 'Cancelled').map((s: any) => s.unitId || s.unit));
+            setAvailableUnits(all.filter((u: any) =>
+                (u.status === 'Available' || u.status === 'Under Construction') &&
+                !activeUnitIds.has(u.id) &&
+                !activeUnitIds.has(u.unit_number)
+            ));
+        } catch { setAvailableUnits([]); }
+    };
+
     useEffect(() => {
         // Fetch properties
         fetch(`${API}/api/properties/`)
@@ -60,19 +76,7 @@ export default function SalesList() {
                 setSales(parsedSales);
             })
             .catch(console.error);
-    }, []);
-
-    const loadAvailableUnits = async (propId: string) => {
-        if (!propId) { setAvailableUnits([]); return; }
-        try {
-            const res = await fetch(`${API}/api/properties/${propId}/units`);
-            const all = await res.json();
-            // Include both Available AND Under Construction units (UC = pre-con sale)
-            setAvailableUnits(all.filter((u: any) => u.status === 'Available' || u.status === 'Under Construction'));
-        } catch { setAvailableUnits([]); }
-    };
-
-
+    }, [property, prefilledUnit]);
 
     // Filtered sales list
     const filteredSales = sales.filter((s: any) => {
@@ -273,6 +277,7 @@ export default function SalesList() {
                                 id: `SL-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
                                 property: newSale.property || property?.name || 'Unknown',
                                 unit: newSale.unit || prefilledUnit?.unit_number || '',
+                                unitId: newSale.unitId || prefilledUnit?.id || '',
                                 unitStatus: newSale.unitStatus || prefilledUnit?.status || '',
                                 buyer: newSale.buyerName,
                                 price: `C$${Number(newSale.price).toLocaleString()}`,
@@ -281,7 +286,8 @@ export default function SalesList() {
                                 stage: 0,
                                 data: {
                                     agreementType: newSale.unitStatus === 'Under Construction' ? 'Pre-Construction' : (newSale.agreementType || ''),
-                                    salePrice: parseFloat(String(newSale.price || '0').replace(/[^0-9.]/g, '')) || ''
+                                    salePrice: parseFloat(String(newSale.price || '0').replace(/[^0-9.]/g, '')) || '',
+                                    unitId: newSale.unitId || prefilledUnit?.id || ''
                                 }
                             };
                             setSales([newSaleObj, ...sales]);

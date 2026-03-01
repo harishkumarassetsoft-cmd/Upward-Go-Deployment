@@ -28,7 +28,7 @@ export default function Payments() {
         setLoading(true);
         try {
             // First call original schedule logic
-            const res = await fetch('http://localhost:8000/api/payments/generate-schedule', {
+            const res = await fetch('http://localhost:8080/api/payments/generate-schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -40,7 +40,7 @@ export default function Payments() {
             const data = await res.json();
 
             // Phase 6 Integration: Call new deposit schedule endpoint to log to Excel securely
-            await fetch('http://localhost:8000/api/phase6/sales/TEST-SALE-01/deposit-schedule', {
+            await fetch('http://localhost:8080/api/phase6/sales/TEST-SALE-01/deposit-schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -59,7 +59,7 @@ export default function Payments() {
     const requestEscrowRelease = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await fetch('http://localhost:8000/api/phase6/escrow/release', {
+            const res = await fetch('http://localhost:8080/api/phase6/escrow/release', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

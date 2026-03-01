@@ -3,7 +3,7 @@ import { Building2, Home, ArrowLeft, PlusCircle, Edit2, X, Save, MapPin } from '
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8080';
 
 interface Property {
     id: string;

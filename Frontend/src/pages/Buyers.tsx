@@ -7,7 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import BuyerFlowModal from '../components/BuyerFlowModal';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8080';
 
 // Canadian NSF fine per Banking Rules — standard industry fine is $45 CAD
 const CANADA_NSF_FEE = 45;

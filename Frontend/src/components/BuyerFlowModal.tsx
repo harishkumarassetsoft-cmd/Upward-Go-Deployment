@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, CheckCircle2, Upload } from 'lucide-react';
+import { X, CheckCircle2, Upload, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface BuyerFlowModalProps {
@@ -46,7 +46,7 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="glass-panel p-6 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto"
+                className="glass-panel p-6 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto"
             >
                 <button
                     onClick={onClose}
@@ -590,8 +590,14 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                                                     tax_amount: tx
                                                                                 }
                                                                             });
-                                                                            handleSaleDataChange('paymentSchedule', finalizeSchedule);
-                                                                            handleSaleDataChange('paymentScheduleConfirmed', true);
+                                                                            onUpdateSale({
+                                                                                ...sale,
+                                                                                data: {
+                                                                                    ...sale.data,
+                                                                                    paymentSchedule: finalizeSchedule,
+                                                                                    paymentScheduleConfirmed: true
+                                                                                }
+                                                                            });
 
                                                                             const key = 'confirmedPaySchedules';
                                                                             const existing = JSON.parse(localStorage.getItem(key) || '[]');
@@ -617,9 +623,17 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                                 )}
 
                                                                 {sale.data?.paymentScheduleConfirmed && (
-                                                                    <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                                                                        <span className="text-emerald-400 text-sm">✓</span>
-                                                                        <span className="text-emerald-400 text-sm font-medium">Schedule confirmed. Buyer can now view & pay instalments on the Buyers page.</span>
+                                                                    <div className="flex items-center justify-between w-full px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-emerald-400 text-sm">✓</span>
+                                                                            <span className="text-emerald-400 text-sm font-medium">Schedule confirmed. Buyer can now view & pay instalments on the Buyers page.</span>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => handleSaleDataChange('paymentScheduleConfirmed', false)}
+                                                                            className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition-colors border border-slate-700 hover:text-white"
+                                                                        >
+                                                                            Edit Schedule
+                                                                        </button>
                                                                     </div>
                                                                 )}
 
@@ -640,11 +654,11 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                                         </button>
                                                                     </div>
 
-                                                                    {(sale.data?.upgrades?.length || 0) === 0 ? (
+                                                                    {(!sale.data?.upgrades?.length && !draftUpgrade) ? (
                                                                         <p className="text-xs text-slate-500 text-center py-4">No upgrades added. Click <strong className="text-violet-400">+ Add Upgrade</strong> to begin.</p>
                                                                     ) : (
                                                                         <div className="divide-y divide-violet-500/10">
-                                                                            {(sale.data?.upgrades as any[]).map((upg: any, ui: number) => (
+                                                                            {(sale.data?.upgrades as any[] || []).map((upg: any, ui: number) => (
                                                                                 <div key={ui} className="px-4 py-3 grid grid-cols-[1fr_110px_100px_32px] gap-2 items-start">
                                                                                     <div>
                                                                                         <input
@@ -847,6 +861,23 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                         </button>
                                                     </div>
                                                     <div className="pt-4 border-t border-slate-700/50">
+                                                        <h4 className="text-sm font-semibold text-slate-300 mb-3">Interim Occupancy & Registration</h4>
+                                                        <div className="grid grid-cols-3 gap-4">
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Interim Occupancy Start</label>
+                                                                <input type="date" value={sale.data?.interimOccupancyStart || ''} onChange={(e) => handleSaleDataChange('interimOccupancyStart', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Monthly Occupancy Fee</label>
+                                                                <input type="number" value={sale.data?.interimOccupancyFee || ''} onChange={(e) => handleSaleDataChange('interimOccupancyFee', parseFloat(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" placeholder="0.00" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Condo Registration Date</label>
+                                                                <input type="date" value={sale.data?.condoRegistrationDate || ''} onChange={(e) => handleSaleDataChange('condoRegistrationDate', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="pt-4 mt-4 border-t border-slate-700/50">
                                                         <div className="flex items-center gap-2">
                                                             <input type="checkbox" checked={!!sale.data?.pdiComplete} onChange={(e) => handleSaleDataChange('pdiComplete', e.target.checked)} id="pdi-complete" className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500" />
                                                             <label htmlFor="pdi-complete" className="text-sm text-slate-300">PDI Complete & All Defects Resolved</label>
@@ -854,24 +885,174 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                     </div>
                                                 </>
                                             )}
-                                            {idx === 5 && (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-slate-400 mb-1">Closing Date</label>
-                                                            <input type="date" value={sale.data?.closingDate || ''} onChange={(e) => handleSaleDataChange('closingDate', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                                            {idx === 5 && (() => {
+                                                const basePrice = parseFloat(sale.data?.salePrice || (typeof sale.price === 'string' ? sale.price.replace(/[^0-9.]/g, '') : sale.price)) || 0;
+                                                const upgradesTotal = (sale.data?.upgrades as any[] || []).reduce((s: number, u: any) => s + (u.cost || 0), 0);
+                                                const taxRate = sale.data?.paymentScheduleRegion === 'India' ? 0.05 : 0.13;
+                                                const totalTax = (basePrice + upgradesTotal) * taxRate;
+                                                const totalPurchasePrice = basePrice + upgradesTotal + totalTax;
+                                                const depositsPaid = (sale.data?.paymentSchedule as any[] || []).reduce((s: number, item: any) => item.actual_date ? s + (item.amount_due || 0) : s, 0);
+
+                                                const tarionFee = parseFloat(sale.data?.tarionEnrollmentFee) || 0;
+                                                const managementFee = parseFloat(sale.data?.managementFee) || 0;
+                                                const closingFee = parseFloat(sale.data?.closingFee) || 0;
+                                                const totalAdditionalFees = tarionFee + managementFee + closingFee;
+
+                                                const balanceDue = totalPurchasePrice - depositsPaid + totalAdditionalFees;
+                                                const region = sale.data?.paymentScheduleRegion || 'Canada';
+                                                const fmt = (n: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: region === 'India' ? 'INR' : 'CAD' }).format(n);
+
+                                                return (
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-4 mb-5">
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Closing Date</label>
+                                                                <input type="date" value={sale.data?.closingDate || ''} onChange={(e) => handleSaleDataChange('closingDate', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Final Sale Price</label>
+                                                                <input type="number" value={sale.data?.finalPrice || ''} onChange={(e) => handleSaleDataChange('finalPrice', parseFloat(e.target.value) || 0)} placeholder="620000" className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" />
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-slate-400 mb-1">Final Sale Price (C$)</label>
-                                                            <input type="number" value={sale.data?.finalPrice || ''} onChange={(e) => handleSaleDataChange('finalPrice', e.target.value)} placeholder="e.g. 620000" className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" />
+
+                                                        <div className="pt-4 border-t border-slate-700/50 mb-5">
+                                                            <h4 className="text-sm font-semibold text-slate-300 mb-3">Broker Information</h4>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-slate-400 mb-1">Broker Name</label>
+                                                                    <input type="text" value={sale.data?.brokerName || ''} onChange={(e) => handleSaleDataChange('brokerName', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. John Doe Realty" />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-slate-400 mb-1">Commission Structure</label>
+                                                                    <select value={sale.data?.brokerCommissionStatus || ''} onChange={(e) => handleSaleDataChange('brokerCommissionStatus', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                                                        <option value="">None</option>
+                                                                        <option value="1%">1%</option>
+                                                                        <option value="2%">2%</option>
+                                                                        <option value="3%">3%</option>
+                                                                        <option value="4%">4%</option>
+                                                                        <option value="5%">5%</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="checkbox" checked={!!sale.data?.deedRegistered} onChange={(e) => handleSaleDataChange('deedRegistered', e.target.checked)} id="deed-registered" className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500" />
-                                                        <label htmlFor="deed-registered" className="text-sm text-slate-300">Deed Registered & Keys Handed Over</label>
-                                                    </div>
-                                                </>
-                                            )}
+
+                                                        <div className="pt-4 border-t border-slate-700/50 mb-5">
+                                                            <h4 className="text-sm font-semibold text-slate-300 mb-3">Tarion Warranty Registration</h4>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-slate-400 mb-1">Warranty Start Date</label>
+                                                                <input type="date" value={sale.data?.tarionWarrantyStart || ''} onChange={(e) => handleSaleDataChange('tarionWarrantyStart', e.target.value)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="pt-4 border-t border-slate-700/50 mb-5">
+                                                            <h4 className="text-sm font-semibold text-slate-300 mb-3">Additional Closing Fees</h4>
+                                                            <div className="grid grid-cols-3 gap-4">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-slate-400 mb-1">Tarion Enrollment Fee</label>
+                                                                    <input type="number" value={sale.data?.tarionEnrollmentFee || ''} onChange={(e) => handleSaleDataChange('tarionEnrollmentFee', parseFloat(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" placeholder="0.00" />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-slate-400 mb-1">Management Fee</label>
+                                                                    <input type="number" value={sale.data?.managementFee || ''} onChange={(e) => handleSaleDataChange('managementFee', parseFloat(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" placeholder="0.00" />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-slate-400 mb-1">Closing & Legal Fee</label>
+                                                                    <input type="number" value={sale.data?.closingFee || ''} onChange={(e) => handleSaleDataChange('closingFee', parseFloat(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700/50 rounded-md py-1.5 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono" placeholder="0.00" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-hidden mb-5">
+                                                            <div className="px-4 py-2 bg-slate-800/80 border-b border-slate-700/50 flex justify-between items-center">
+                                                                <h4 className="text-sm font-semibold text-slate-300">Statement of Adjustments</h4>
+                                                            </div>
+                                                            <div className="p-4 space-y-2 text-sm">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-400">Base Purchase Price</span>
+                                                                    <span className="text-slate-200 font-mono">{fmt(basePrice)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-400">Total Upgrades</span>
+                                                                    <span className="text-slate-200 font-mono">{fmt(upgradesTotal)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-slate-400">Taxes ({(taxRate * 100).toFixed(0)}%)</span>
+                                                                    <span className="text-slate-200 font-mono">{fmt(totalTax)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between border-t border-slate-700/50 pt-2">
+                                                                    <span className="text-slate-300 font-medium">Total Purchase Price</span>
+                                                                    <span className="text-slate-200 font-medium font-mono">{fmt(totalPurchasePrice)}</span>
+                                                                </div>
+                                                                <div className="flex justify-between text-emerald-400 mt-3">
+                                                                    <span>Less: Deposits Paid</span>
+                                                                    <span className="font-mono">-{fmt(depositsPaid)}</span>
+                                                                </div>
+                                                                {totalAdditionalFees > 0 && (
+                                                                    <div className="flex justify-between text-amber-400">
+                                                                        <span>Plus: Additional Closing Fees</span>
+                                                                        <span className="font-mono">+{fmt(totalAdditionalFees)}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex justify-between border-t border-slate-700/50 pt-3 pb-1 mt-2">
+                                                                    <span className="text-blue-400 font-bold">Balance Due on Closing</span>
+                                                                    <span className="text-blue-400 font-bold font-mono">{fmt(balanceDue)}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between mb-5">
+                                                            {sale.data?.paymentSchedule?.some((m: any) => m.milestone === 'Final Settlement') ? (
+                                                                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm font-medium w-full justify-center">
+                                                                    <Check className="w-5 h-5" /> Final Settlement Sent to Payments Cycle ({fmt(balanceDue)})
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const existingSchedule = sale.data?.paymentSchedule || [];
+                                                                        const newSchedule = [...existingSchedule, {
+                                                                            milestone: 'Final Settlement',
+                                                                            percentage: 0,
+                                                                            amount_due: balanceDue,
+                                                                            estimated_date: sale.data?.closingDate || new Date().toISOString().split('T')[0],
+                                                                            actual_date: null,
+                                                                            currency: region === 'India' ? 'INR' : 'CAD'
+                                                                        }];
+                                                                        onUpdateSale({
+                                                                            ...sale,
+                                                                            data: {
+                                                                                ...sale.data,
+                                                                                paymentSchedule: newSchedule,
+                                                                                finalPaymentSettled: true
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                    disabled={balanceDue <= 0}
+                                                                    className={`w-full py-2.5 rounded-lg font-bold text-sm transition-colors shadow-lg ${balanceDue <= 0
+                                                                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed shadow-none'
+                                                                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+                                                                        }`}
+                                                                >
+                                                                    Send to Payment Cycle: {fmt(balanceDue)}
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!sale.data?.deedRegistered}
+                                                                onChange={(e) => handleSaleDataChange('deedRegistered', e.target.checked)}
+                                                                disabled={!(sale.data?.paymentSchedule?.some((m: any) => m.milestone === 'Final Settlement' && m.actual_date) || balanceDue <= 0)}
+                                                                id="deed-registered"
+                                                                className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            />
+                                                            <label htmlFor="deed-registered" className={`text-sm ${!(sale.data?.paymentSchedule?.some((m: any) => m.milestone === 'Final Settlement' && m.actual_date) || balanceDue <= 0) ? 'text-slate-500' : 'text-slate-300'}`}>
+                                                                Deed Registered & Keys Handed Over {!(sale.data?.paymentSchedule?.some((m: any) => m.milestone === 'Final Settlement' && m.actual_date) || balanceDue <= 0) && '(Requires Final Settlement Paid)'}
+                                                            </label>
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
                                         </motion.div>
                                     )}
                                 </div>
@@ -890,7 +1071,10 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                     const paymentsGateBlocked = sale.stage === 3 && !allPaymentsCleared;
                     const paidCount = schedule.filter((m: any) => !!m.actual_date).length;
 
-                    const anyGateBlocked = kycGateBlocked || paySchedGateBlocked || paymentsGateBlocked;
+                    // Gate: cannot complete sale until deed registered & handed over
+                    const closingGateBlocked = sale.stage === 5 && !sale.data?.deedRegistered;
+
+                    const anyGateBlocked = kycGateBlocked || paySchedGateBlocked || paymentsGateBlocked || closingGateBlocked;
                     return (
                         <div className="mt-8 pt-4 border-t border-slate-700/50">
                             {kycGateBlocked && (
@@ -925,6 +1109,12 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                     <p className="text-xs text-slate-500 mt-1">Go to the <strong className="text-slate-300">Buyers</strong> page, expand this buyer, and clear all cheques to unlock Pre-Closing.</p>
                                 </div>
                             )}
+                            {closingGateBlocked && (
+                                <div className="mb-3 flex items-center gap-2 px-3 py-2.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-sm font-medium">
+                                    <span>🔒</span>
+                                    <span>You must confirm the Deed is Registered and Keys Handed Over before finalizing the sale.</span>
+                                </div>
+                            )}
                             <div className="flex justify-end">
                                 <button
                                     disabled={anyGateBlocked}
@@ -941,7 +1131,8 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                     {kycGateBlocked ? '🔒 KYC Required to Proceed'
                                         : paySchedGateBlocked ? '💳 Confirm Payment Schedule First'
                                             : paymentsGateBlocked ? '🔒 Clear All Payments First'
-                                                : 'Mark Next Stage Complete'}
+                                                : closingGateBlocked ? '🔒 Key Handover Required'
+                                                    : 'Mark Next Stage Complete'}
                                 </button>
                             </div>
                         </div>
