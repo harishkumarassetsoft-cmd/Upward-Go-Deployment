@@ -1,0 +1,47 @@
+# UPWARD Unit Sales Management Platform - Implementation Plan
+
+This plan outlines the end-to-end scaffolding and development of the Unified Real Estate Command Center, based on the provided Google Docs specification and Claude UI mockup, using the newly requested technology stack.
+
+## Proposed Changes
+
+We will build a full-stack application with a React.js frontend, a .NET (C#) Web API backend, and a SQL Server database to handle the data persistence and Yardi integrations.
+
+### 1. Project Initialization & Setup
+- Set up a .NET Web API project for the backend in `c:\Upward-Go\Backend`.
+- Set up a React project (e.g., via Vite) for the frontend in `c:\Upward-Go\Frontend`.
+- Install necessary frontend dependencies: `lucide-react`, `framer-motion`, `axios` (for API calls), `tailwindcss` (for styling).
+
+### 2. Database Schema (.NET + Dapper + SQL Server)
+- Install `Dapper` and `Microsoft.Data.SqlClient` packages.
+- Create models (POCOs) based on the comprehensive specification (16+ entities):
+  - **Property Management:** `Properties`, `Units`, `UnitFees`, `UnitLeaseInfo`
+  - **Buyer & Broker:** `Buyers` (w/ Multi-country KYC/Tax IDs), `JointBuyers`, `Brokers`
+  - **Sales & Commissions:** `Sales` (w/ Agreement types and compliance JSON), `Commissions` (splits based on net/gross)
+  - **Payments & Financials:** `PaymentSchedules`, `PaymentInstallments`, `NSFEvents`, `NSFConfigurations`
+  - **System & Audit:** `Users`, `YardiSyncLogs`, `AuditLogs`
+- Write a startup script/method using Dapper to automatically create these tables and seed mock analytics data into the local SQL Server instance if the database is empty.
+
+### 3. Backend API Implementation (.NET Web API)
+- `GET /api/sales` - Fetch all sales with unit and property relations using Dapper SQL queries.
+- `POST /api/sales` - Create a new sale record, validate country requirements (mocked).
+- `POST /api/yardi/sync` - Perform the Yardi Push (mocked logic), mark sales as synced, update GL Code statuses, and return the operation trace log.
+
+### 4. Frontend Application (React UI & Flow)
+- **Layout & Navigation:** A persistent dark-themed sidebar with sections for Dashboard, Properties, Sales, Buyers, Brokers, Payments, AI Engine, Yardi Sync.
+- **Pages:**
+  - **Dashboard:** High-level metrics (Sales volume in selected country currency, Yardi sync status) populated dynamically by the seeded mock data.
+  - **Sales Form & Table:** Create a new sale with specific inputs. View existing sales, their compliance status, and sync status.
+  - **Yardi Sync Panel:** A dedicated UI to monitor the "health" of the connection to Yardi Voyager and view the sync history logs payload.
+
+## Verification Plan
+
+### Automated Tests
+- Running the .NET build (`dotnet build`) to type-check the backend.
+- Running React build to type-check the frontend.
+
+### Manual Verification
+1. Verify the .NET API creates the tables and seeds mock data automatically upon the first run in the local SQL Server instance.
+2. Run the .NET backend API and the React frontend locally.
+3. Navigate through the Sidebar to verify the layouts in the browser. See that the dashboard analytics are populated.
+4. Submit a new "Sale" entry through the frontend and verify it persists in the SQL Server database via the API call.
+5. Click "Sync" on the Yardi sync panel and verify the backend API responds with a successful mock payload mimicking Yardi Voyager insertion.
