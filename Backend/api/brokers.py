@@ -48,8 +48,24 @@ def _load_broker_profiles() -> list:
     df = db.get_dataframe("People", "Brokers")
     if df.empty:
         return []
-    df = df.where(df.notnull(), None)
-    return df.to_dict(orient="records")
+    # Safely convert all non-string columns to strings so JSON serialization works
+    for col in df.columns:
+        if df[col].dtype not in ["object"]:
+            df[col] = df[col].astype(str).replace("nan", "").replace("None", "")
+    df = df.fillna("")
+    records = df.to_dict(orient="records")
+    # Normalize: map legacy column names to expected keys
+    normalized = []
+    for r in records:
+        normalized.append({
+            "broker_name": str(r.get("broker_name") or r.get("name") or "").strip(),
+            "firm": str(r.get("firm") or r.get("agency") or "").strip(),
+            "contact_name": str(r.get("contact_name") or "").strip(),
+            "email": str(r.get("email") or "").strip(),
+            "phone": str(r.get("phone") or "").strip(),
+            "commission_status": str(r.get("commission_status") or "").strip(),
+        })
+    return [n for n in normalized if n["broker_name"]]
 
 
 def _parse_commission_rate(raw: str) -> float:
@@ -225,11 +241,18 @@ def _aggregate_brokers(sales, payments, profiles):
 @router.get("/brokers")
 def list_brokers():
     """Return all brokers aggregated from sales data with commission totals."""
-    sales = _get_sales()
-    payments = _load_payments()
-    profiles = _load_broker_profiles()
-    brokers = _aggregate_brokers(sales, payments, profiles)
-    return brokers
+    try:
+        sales = _get_sales()
+        payments = _load_payments()
+        profiles = _load_broker_profiles()
+        brokers = _aggregate_brokers(sales, payments, profiles)
+        # Ensure all values are JSON-serializable
+        import json
+        json.dumps(brokers)  # validate
+        return brokers
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=f"Broker aggregation error: {str(e)}\n{traceback.format_exc()}")
 
 
 @router.get("/brokers/summary")

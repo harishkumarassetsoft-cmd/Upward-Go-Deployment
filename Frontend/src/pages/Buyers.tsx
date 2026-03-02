@@ -433,7 +433,7 @@ export default function Buyers() {
                                         </div>
                                         <div>
                                             <p className="text-white font-semibold">{sale.buyer}</p>
-                                            <p className="text-xs text-slate-400">{sale.property} · Unit {sale.unit} · <span className="font-mono text-slate-500">{sale.id}</span></p>
+                                            <p className="text-xs text-slate-400">{sale.propertyName || sale.property} · Unit {sale.unit} · <span className="font-mono text-slate-500">{sale.id}</span></p>
                                         </div>
                                     </div>
 

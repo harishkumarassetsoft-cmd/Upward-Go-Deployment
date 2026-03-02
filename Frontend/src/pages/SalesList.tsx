@@ -205,7 +205,9 @@ export default function SalesList() {
                                 >
                                     <td className="px-6 py-4 font-medium text-white">{sale.id}</td>
                                     <td className="px-6 py-4">
-                                        <div>{sale.property}</div>
+                                        <div className="font-medium text-slate-200">
+                                            {sale.propertyName || properties.find((p: any) => p.id === sale.property)?.name || sale.property}
+                                        </div>
                                         <div className="text-xs text-slate-500">Unit: {sale.unit}</div>
                                     </td>
                                     <td className="px-6 py-4">{sale.buyer}</td>

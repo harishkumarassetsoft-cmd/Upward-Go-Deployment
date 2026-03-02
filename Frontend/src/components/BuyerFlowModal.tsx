@@ -1041,7 +1041,16 @@ export default function BuyerFlowModal({ sale, onClose, onUpdateSale }: BuyerFlo
                                                             <input
                                                                 type="checkbox"
                                                                 checked={!!sale.data?.deedRegistered}
-                                                                onChange={(e) => handleSaleDataChange('deedRegistered', e.target.checked)}
+                                                                onChange={(e) => {
+                                                                    const checked = e.target.checked;
+                                                                    const updated = {
+                                                                        ...sale,
+                                                                        stage: checked ? 6 : sale.stage,
+                                                                        status: checked ? 'Completed' : sale.status,
+                                                                        data: { ...(sale.data || {}), deedRegistered: checked }
+                                                                    };
+                                                                    onUpdateSale(updated);
+                                                                }}
                                                                 disabled={!(sale.data?.paymentSchedule?.some((m: any) => m.milestone === 'Final Settlement' && m.actual_date) || balanceDue <= 0)}
                                                                 id="deed-registered"
                                                                 className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
